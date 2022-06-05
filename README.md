@@ -1,2 +1,2 @@
 # 4d-plugin-HL7
-HL7 parser
+Generic HL7 v2 parser
