@@ -35,10 +35,29 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 
 #pragma mark -
 
+#include <regex>
+
+static void unescape(std::string& value) {
+        
+    value = std::regex_replace(value, std::regex("\\\\F\\\\"), "|");
+    value = std::regex_replace(value, std::regex("\\\\R\\\\"), "~");
+    value = std::regex_replace(value, std::regex("\\\\S\\\\"), "^");
+    value = std::regex_replace(value, std::regex("\\\\T\\\\"), "&");
+    
+    value = std::regex_replace(value, std::regex("\\\\.br\\\\"), "\r");
+    value = std::regex_replace(value, std::regex("\\\\X0A\\\\"), "\n");
+    value = std::regex_replace(value, std::regex("\\\\X0D\\\\"), "\r");
+
+    value = std::regex_replace(value, std::regex("\\\\E\\\\"), "\\");
+}
+
 static void push_value(PA_CollectionRef c, HL7_Node *node) {
     
+    std::string value = std::string(node->element.value, node->element.length);
+    unescape(value);
+    
     C_TEXT t;
-    t.setUTF8String((const uint8_t *)node->element.value, node->element.length);
+    t.setUTF8String((const uint8_t *)value.c_str(), value.length());
     PA_Variable v = PA_CreateVariable(eVK_Unistring);
     PA_Unistring u = PA_CreateUnistring((PA_Unichar *)t.getUTF16StringPtr());
     PA_SetStringVariable(&v, &u);
@@ -72,18 +91,13 @@ static void print_node(PA_ObjectRef hl7, HL7_Node *node, HL7_Element_Type elemen
 
             if (node->children != 0) {
                 
-                if(element_type == HL7_ELEMENT_REPETITION) {
-                    print_node(hl7, node->children, hl7_child_type(element_type));
-                }else{
                     PA_ObjectRef o = PA_CreateObject();
                     print_node(o, node->children, hl7_child_type(element_type));
                     PA_Variable v = PA_CreateVariable(eVK_Object);
                     PA_SetObjectVariable(&v, o);
                     PA_SetCollectionElement(c, PA_GetCollectionLength(c), v);
                     PA_ClearVariable(&v);
-                }
-                
-                
+ 
             }
             node = node->sibling;
             
@@ -97,13 +111,13 @@ static void print_node(PA_ObjectRef hl7, HL7_Node *node, HL7_Element_Type elemen
                 ob_set_c(hl7, "component", c);
                 break;
             case HL7_ELEMENT_REPETITION:
-                //parent of component
+                ob_set_c(hl7, "repetition", c);
                 break;
             case HL7_ELEMENT_FIELD:
                 ob_set_c(hl7, fieldName.c_str(), c);
                 break;
             case HL7_ELEMENT_SEGMENT:
-                ob_set_c(hl7, "segment", c);
+                ob_set_c(hl7, "HL7", c);
                 break;
             case HL7_ELEMENT_TYPE_COUNT:
                 ob_set_c(hl7, "count", c);
@@ -157,14 +171,8 @@ void HL7_Parse(PA_PluginParameters params) {
     hl7_parser_init(&parser, &settings);
     
     if (hl7_parser_read(&parser, &message, &input_buffer) == 0) {
-        
         ob_set_b(status, L"success", true);
-              
-        PA_ObjectRef o = PA_CreateObject();
-        
-        print_message(o, &message);
-
-        ob_set_o(status, L"HL7", o);
+        print_message(status, &message);
     }
 
     hl7_parser_fini(&parser);
