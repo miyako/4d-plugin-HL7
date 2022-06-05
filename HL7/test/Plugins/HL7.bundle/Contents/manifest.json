@@ -1,0 +1,11 @@
+{
+    "name": "HL7",
+    "id": 20000,
+    "commands": [
+        {
+            "theme": "HL7",
+            "syntax": "HL7 Parse(&T):J",
+            "threadSafe": true
+        }
+    ]
+}
