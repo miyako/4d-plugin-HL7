@@ -5,6 +5,45 @@
       <Filter>4D Plugin API</Filter>
     </ClCompile>
     <ClCompile Include="4DPlugin-HL7.cpp" />
+    <ClCompile Include="hl7parser\seg_qak.c" />
+    <ClCompile Include="hl7parser\seg_qpd_q15.c" />
+    <ClCompile Include="hl7parser\seg_rcp.c" />
+    <ClCompile Include="hl7parser\seg_rf1.c" />
+    <ClCompile Include="hl7parser\seg_zau.c" />
+    <ClCompile Include="hl7parser\seg_zin.c" />
+    <ClCompile Include="hl7parser\segdefs.c" />
+    <ClCompile Include="hl7parser\segment.c" />
+    <ClCompile Include="hl7parser\settings.c" />
+    <ClCompile Include="hl7parser\sprint.c" />
+    <ClCompile Include="hl7parser\stack.c" />
+    <ClCompile Include="hl7parser\token.c" />
+    <ClCompile Include="hl7parser\alloc.c" />
+    <ClCompile Include="hl7parser\buffer.c" />
+    <ClCompile Include="hl7parser\cbparser.c" />
+    <ClCompile Include="hl7parser\element.c" />
+    <ClCompile Include="hl7parser\format.c" />
+    <ClCompile Include="hl7parser\handler.c" />
+    <ClCompile Include="hl7parser\lexer.c" />
+    <ClCompile Include="hl7parser\message.c" />
+    <ClCompile Include="hl7parser\node.c" />
+    <ClCompile Include="hl7parser\parser.c" />
+    <ClCompile Include="hl7parser\seg_aut.c" />
+    <ClCompile Include="hl7parser\seg_dg1.c" />
+    <ClCompile Include="hl7parser\seg_dsc.c" />
+    <ClCompile Include="hl7parser\seg_dsp.c" />
+    <ClCompile Include="hl7parser\seg_err.c" />
+    <ClCompile Include="hl7parser\seg_evn.c" />
+    <ClCompile Include="hl7parser\seg_in1.c" />
+    <ClCompile Include="hl7parser\seg_msa.c" />
+    <ClCompile Include="hl7parser\seg_msh.c" />
+    <ClCompile Include="hl7parser\seg_nte.c" />
+    <ClCompile Include="hl7parser\seg_pid.c" />
+    <ClCompile Include="hl7parser\seg_pr1.c" />
+    <ClCompile Include="hl7parser\seg_prd.c" />
+    <ClCompile Include="hl7parser\seg_pv1.c" />
+    <ClCompile Include="hl7parser\seg_pv2.c" />
+    <ClCompile Include="4D Plugin API\Classes\C_TEXT.cpp" />
+    <ClCompile Include="support\4DPlugin-JSON.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="4D Plugin API\4DPluginAPI.h">
@@ -23,6 +62,9 @@
       <Filter>4D Plugin API</Filter>
     </ClInclude>
     <ClInclude Include="4DPlugin-HL7.h" />
+    <ClInclude Include="4D Plugin API\Classes\C_TEXT.h" />
+    <ClInclude Include="4D Plugin API\Classes\C_TYPES.h" />
+    <ClInclude Include="support\4DPlugin-JSON.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="4D Plugin API">
