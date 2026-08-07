@@ -36,19 +36,32 @@ void PluginMain(PA_long32 selector, PA_PluginParameters params) {
 #pragma mark -
 
 #include <regex>
+#include <exception>
 
 static void unescape(std::string& value) {
-        
-    value = std::regex_replace(value, std::regex("\\\\F\\\\"), "|");
-    value = std::regex_replace(value, std::regex("\\\\R\\\\"), "~");
-    value = std::regex_replace(value, std::regex("\\\\S\\\\"), "^");
-    value = std::regex_replace(value, std::regex("\\\\T\\\\"), "&");
-    
-    value = std::regex_replace(value, std::regex("\\\\.br\\\\"), "\r");
-    value = std::regex_replace(value, std::regex("\\\\X0A\\\\"), "\n");
-    value = std::regex_replace(value, std::regex("\\\\X0D\\\\"), "\r");
 
-    value = std::regex_replace(value, std::regex("\\\\E\\\\"), "\\");
+    // Compiled once (function-local static, thread-safe init per C++11) instead of
+    // re-compiling all 8 patterns on every call - this runs once per HL7 field/
+    // component/subcomponent value, so a single message can invoke it hundreds of times.
+    static const std::regex reF("\\\\F\\\\");
+    static const std::regex reR("\\\\R\\\\");
+    static const std::regex reS("\\\\S\\\\");
+    static const std::regex reT("\\\\T\\\\");
+    static const std::regex reBr("\\\\\\.br\\\\");
+    static const std::regex reX0A("\\\\X0A\\\\");
+    static const std::regex reX0D("\\\\X0D\\\\");
+    static const std::regex reE("\\\\E\\\\");
+
+    value = std::regex_replace(value, reF, "|");
+    value = std::regex_replace(value, reR, "~");
+    value = std::regex_replace(value, reS, "^");
+    value = std::regex_replace(value, reT, "&");
+
+    value = std::regex_replace(value, reBr, "\r");
+    value = std::regex_replace(value, reX0A, "\n");
+    value = std::regex_replace(value, reX0D, "\r");
+
+    value = std::regex_replace(value, reE, "\\");
 }
 
 static void push_value(PA_CollectionRef c, HL7_Node *node) {
@@ -140,7 +153,6 @@ void HL7_Parse(PA_PluginParameters params) {
 
     PA_ObjectRef status = PA_CreateObject();
     
-    sLONG_PTR *pResult = (sLONG_PTR *)params->fResult;
     PackagePtr pParams = (PackagePtr)params->fParameters;
     
     ob_set_b(status, L"success", false);
@@ -170,9 +182,31 @@ void HL7_Parse(PA_PluginParameters params) {
     
     hl7_parser_init(&parser, &settings);
     
-    if (hl7_parser_read(&parser, &message, &input_buffer) == 0) {
-        ob_set_b(status, L"success", true);
-        print_message(status, &message);
+    // hl7_parser_read() itself is a plain-C call and won't throw, but building the
+    // result (print_message walking every segment/field/component and allocating
+    // std::string/PA_* values along the way) can throw (e.g. std::bad_alloc on a
+    // very large message). This command has a declared return value (manifest:
+    // "HL7 Parse(&T):J"), so letting that exception propagate up to PluginMain's
+    // catch(...) would skip PA_ReturnObject entirely and hang the host waiting for
+    // a result that never comes - and it would also skip every _fini call below,
+    // leaking the whole parsed node tree. Catching locally guarantees both the
+    // native cleanup and the return always happen.
+    try
+    {
+        if (hl7_parser_read(&parser, &message, &input_buffer) == 0) {
+            ob_set_b(status, L"success", true);
+            print_message(status, &message);
+        }
+    }
+    catch (const std::exception &e)
+    {
+        ob_set_b(status, L"success", false);
+        ob_set_s(status, L"error", e.what());
+    }
+    catch (...)
+    {
+        ob_set_b(status, L"success", false);
+        ob_set_s(status, L"error", "unknown error while parsing HL7 message");
     }
 
     hl7_parser_fini(&parser);
