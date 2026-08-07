@@ -78,6 +78,30 @@ static void push_value(PA_CollectionRef c, HL7_Node *node) {
     PA_ClearVariable(&v);
 }
 
+// ob_set_c() only has a wide-key (const wchar_t*) overload at the project's v1.0.1 tag
+// (confirmed against support/4DPlugin-JSON.h fetched at that exact ref - there is no
+// narrow-key sibling there, unlike ob_set_s). fieldName is a runtime UTF-8 std::string
+// (the HL7 segment ID, read from the message), not a literal, so it can't just take an
+// L prefix like the other keys below - it needs an actual conversion. This reuses the
+// file's own existing C_TEXT UTF-8->UTF-16 conversion (already used in push_value above)
+// and widens each UTF-16 code unit into the destination wstring's wchar_t: exact on
+// Windows (wchar_t is itself UTF-16 there), and correct for the BMP on macOS (wchar_t is
+// UTF-32 there, but a lone UTF-16 code unit's numeric value equals its UTF-32 codepoint
+// for any character outside the surrogate-pair range, which covers realistic HL7 segment
+// IDs). This avoids the width mismatch a direct PA_Unichar*->wchar_t* reinterpret-cast
+// would introduce specifically on macOS.
+static std::wstring to_wide_key(const std::string &s) {
+    C_TEXT t;
+    t.setUTF8String((const uint8_t *)s.c_str(), (uint32_t)s.length());
+    const PA_Unichar *u16 = t.getUTF16StringPtr();
+    uint32_t len = t.getUTF16Length();
+    std::wstring out;
+    if (u16 != 0 && len > 0) {
+        out.assign(u16, u16 + len);
+    }
+    return out;
+}
+
 static void print_node(PA_ObjectRef hl7, HL7_Node *node, HL7_Element_Type element_type)
 {
     if(node != 0) {
@@ -118,22 +142,25 @@ static void print_node(PA_ObjectRef hl7, HL7_Node *node, HL7_Element_Type elemen
         
         switch (element_type) {
             case HL7_ELEMENT_SUBCOMPONENT:
-                ob_set_c(hl7, "subcomponent", c);
+                ob_set_c(hl7, L"subcomponent", c);
                 break;
             case HL7_ELEMENT_COMPONENT:
-                ob_set_c(hl7, "component", c);
+                ob_set_c(hl7, L"component", c);
                 break;
             case HL7_ELEMENT_REPETITION:
-                ob_set_c(hl7, "repetition", c);
+                ob_set_c(hl7, L"repetition", c);
                 break;
             case HL7_ELEMENT_FIELD:
-                ob_set_c(hl7, fieldName.c_str(), c);
+                {
+                    std::wstring wFieldName = to_wide_key(fieldName);
+                    ob_set_c(hl7, wFieldName.c_str(), c);
+                }
                 break;
             case HL7_ELEMENT_SEGMENT:
-                ob_set_c(hl7, "HL7", c);
+                ob_set_c(hl7, L"HL7", c);
                 break;
             case HL7_ELEMENT_TYPE_COUNT:
-                ob_set_c(hl7, "count", c);
+                ob_set_c(hl7, L"count", c);
                 break;
             default:
                 break;
