@@ -1,3 +1,4 @@
 HL7/build/*
 HL7/test/userPreferences.*
 *.DS_Store
+build/*
