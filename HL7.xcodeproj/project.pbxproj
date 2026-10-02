@@ -59,6 +59,7 @@
 		D19F84BA284CCB8600E9E829 /* C_TYPES.h in Headers */ = {isa = PBXBuildFile; fileRef = D19F84B7284CCB8600E9E829 /* C_TYPES.h */; };
 		D19F84BD284CD18800E9E829 /* 4DPlugin-JSON.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D19F84BB284CD18800E9E829 /* 4DPlugin-JSON.cpp */; };
 		D19F84BE284CD18800E9E829 /* 4DPlugin-JSON.h in Headers */ = {isa = PBXBuildFile; fileRef = D19F84BC284CD18800E9E829 /* 4DPlugin-JSON.h */; };
+		DBC5E20B2040E3E2D0C7C7E5 /* constants.xlf in CopyFiles */ = {isa = PBXBuildFile; fileRef = D14D10DD1A03A8A5008B3411 /* constants.xlf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -69,6 +70,7 @@
 			dstSubfolderSpec = 7;
 			files = (
 				D134D4AC1A030BA0008D14EF /* manifest.json in CopyFiles */,
+				DBC5E20B2040E3E2D0C7C7E5 /* constants.xlf in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
