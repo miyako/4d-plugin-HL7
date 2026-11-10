@@ -71,7 +71,7 @@ static void push_value(PA_CollectionRef c, HL7_Node *node) {
     
     C_TEXT t;
     t.setUTF8String((const uint8_t *)value.c_str(), value.length());
-    PA_Variable v = PA_CreateVariable(eVK_Unistring);
+    PA_Variable v = PA_CreateVariable(eVK_Undefined);
     PA_Unistring u = PA_CreateUnistring((PA_Unichar *)t.getUTF16StringPtr());
     PA_SetStringVariable(&v, &u);
     PA_SetCollectionElement(c, PA_GetCollectionLength(c), v);

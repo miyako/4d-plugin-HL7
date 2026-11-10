@@ -1,0 +1,20 @@
+name: String ownership
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ownership:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check actual SDK and wrapper ownership with ASan and UBSan
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 tests/test_string_ownership.py
